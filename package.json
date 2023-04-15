@@ -1,0 +1,25 @@
+{
+	"name": "harbor.js",
+	"version": "1.0.0",
+	"description": "",
+	"main": "lib/index.js",
+	"types": "lib/index.d.ts",
+	"files": [
+		"lib"
+	],
+	"scripts": {
+		"build": "tsc",
+		"watch": "tsc --watch"
+	},
+	"keywords": [],
+	"author": {
+		"name": "Jason Ghantous",
+		"email": "jason.ghantous@gmail.com",
+		"url": "https://www.github.com/JasonGH17"
+	},
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^18.15.11",
+		"typescript": "^5.0.4"
+	}
+}
