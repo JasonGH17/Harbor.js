@@ -25,7 +25,9 @@ abstract class Controller implements IController {
 		} else {
 			const response: IResponse = handler(req);
 			res.statusCode = response.status;
-			res.setHeader('Content-Type', 'application/json');
+			response.headers.forEach((value, key) => {
+				res.setHeader(key, value);
+			});
 			res.write(response.data);
 			res.end();
 		}
