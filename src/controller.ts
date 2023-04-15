@@ -1,25 +1,31 @@
 import { IncomingMessage, ServerResponse } from 'http';
+import IResponse from './response';
 
 let controllers: Map<string, Controller> = new Map();
 
 interface IController {
-    HandleRequest: (req: IncomingMessage, res: ServerResponse) => void,
-    [handler: string]: (req: IncomingMessage, res: ServerResponse) => any;
+    HandleRequest: (req: IncomingMessage, res: ServerResponse) => void;
+    [handler: string]: any;
 }
 
-class Controller implements IController {
+abstract class Controller implements IController {
     constructor() { }
-    [handler: string]: (req: IncomingMessage, res: ServerResponse<IncomingMessage>) => any;
+    [handler: string]: any;
 
     HandleRequest(req: IncomingMessage, res: ServerResponse) {
         const handlers: Map<string, string> = this.constructor.prototype[req.method ?? 'GET'];
-        const handler = this[handlers.get(req.url as string) as string];
+        const handler = this[handlers.get(req.url as string) as string] as (((req: IncomingMessage) => IResponse) | undefined);
         if (!handler) {
             res.statusCode = 404;
             res.end();
             return;
-        } else
-            handler(req, res);
+        } else {
+            const response: IResponse = handler(req);
+            res.statusCode = response.status;
+            res.setHeader("Content-Type", "application/json");
+            res.write(response.data);
+            res.end();
+        }
     };
 }
 

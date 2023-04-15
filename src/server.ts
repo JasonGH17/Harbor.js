@@ -34,7 +34,7 @@ class Server {
 		});
 	}
 
-	public Run() {
+	public Run(listener: () => void) {
 		this.server.on('error', (err: any) => {
 			if (err.code === 'EADDRINUSE') {
 				const callback = (x: number) => {
@@ -49,7 +49,7 @@ class Server {
 			}
 		});
 
-		this.server.listen(this.port, this.host, this.backlog);
+		this.server.listen(this.port, this.host, this.backlog, listener);
 	}
 }
 

@@ -1,5 +1,5 @@
-import { IncomingMessage, ServerResponse } from 'http';
-import Server, { Controller, Route, Get } from '../index';
+import { IncomingMessage } from 'http';
+import Server, { Controller, Route, Get, ResOk } from '../index';
 
 @Route('/test1')
 class test1Controller extends Controller {
@@ -8,10 +8,9 @@ class test1Controller extends Controller {
 	}
 
 	@Get('/hello')
-	hello(req: IncomingMessage, res: ServerResponse) {
+	hello(req: IncomingMessage) {
 		console.log('HANDLING /hello');
-		res.write('Hello world /test1/hello');
-		res.end();
+		return new ResOk('Hello world /test1/hello');
 	}
 }
 
@@ -22,13 +21,12 @@ class test2Controller extends Controller {
 	}
 
 	@Get('/world')
-	hello(req: IncomingMessage, res: ServerResponse) {
+	hello(req: IncomingMessage) {
 		console.log('HANDLING /world');
-		res.write('Hello world /test2/world');
-		res.end();
+		return new ResOk('Hello world /test2/world');
 	}
 }
 
 const server = new Server({ host: '127.0.0.1', port: 8000 });
 
-server.Run();
+server.Run(() => console.log("Server is ready: http://127.0.0.1:8000/"));
