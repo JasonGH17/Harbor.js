@@ -38,7 +38,11 @@ class Server {
 		this.server.on('error', (err: any) => {
 			if (err.code === 'EADDRINUSE') {
 				const callback = (x: number) => {
-					console.log('Address in use, retrying in', x.toFixed(0), 'seconds');
+					console.log(
+						'Address in use, retrying in',
+						x.toFixed(0),
+						'seconds'
+					);
 					this.server.close();
 					this.server.listen(this.port, this.host, this.backlog);
 
