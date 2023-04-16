@@ -1,15 +1,24 @@
 import { Controller } from './controller';
 
-function Get(route: string) {
-	return (
-		parent: Object extends Controller ? Controller : Object,
-		method: string,
-		descriptors: PropertyDescriptor
-	) => {
-		parent.constructor.prototype['GET'] =
-			parent.constructor.prototype['GET'] ?? new Map<string, string>();
-		parent.constructor.prototype['GET'].set(route, method);
+function NewMethodDecorator(httpMethod: string) {
+	return (route: string) => {
+		return (
+			parent: Object extends Controller ? Controller : Object,
+			method: string,
+			descriptors: PropertyDescriptor
+		) => {
+			parent.constructor.prototype[httpMethod] =
+				parent.constructor.prototype[httpMethod] ??
+				new Map<string, string>();
+			parent.constructor.prototype[httpMethod].set(route, method);
+		};
 	};
 }
 
-export default Get;
+const Get = NewMethodDecorator('GET');
+const Post = NewMethodDecorator('POST');
+const Put = NewMethodDecorator('PUT');
+const Patch = NewMethodDecorator('PATCH');
+const Delete = NewMethodDecorator('DELETE');
+
+export { Get, Post, Put, Patch, Delete };

@@ -1,5 +1,5 @@
 import { IncomingMessage } from 'http';
-import { Controller, Route, Get, ResOk } from '../index';
+import { Controller, Route, Get, Post, ResOk } from '../index';
 
 @Route('/test1')
 class test1Controller extends Controller {
@@ -7,9 +7,14 @@ class test1Controller extends Controller {
 		super();
 	}
 
-	@Get('/hello')
-	hello(req: IncomingMessage) {
-		console.log('HANDLING /hello');
+	@Get('/{numbertest: number}/{bool1: bool}/{str: string}/{bool2: bool}')
+	hello(req: {
+		numbertest: number;
+		bool1: boolean;
+		str: string;
+		bool2: boolean;
+	}) {
+		console.log(req);
 		return new ResOk('Hello world /test1/hello');
 	}
 
@@ -17,5 +22,10 @@ class test1Controller extends Controller {
 	index(req: IncomingMessage) {
 		console.log('HANDLING /\t(index)');
 		return new ResOk('test1 index page');
+	}
+
+	@Post('/')
+	postIndex(req: IncomingMessage) {
+		return new ResOk('test1 post index result');
 	}
 }

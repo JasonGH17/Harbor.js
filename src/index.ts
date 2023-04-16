@@ -1,9 +1,9 @@
 import Server from './server';
 import { Controller, Route } from './controller';
-import Get from './method';
+import { Get, Post, Put, Patch, Delete } from './method';
 import { ResOk, ResNotFound } from './response';
 
 export default Server;
 export { Controller, Route };
-export { Get };
+export { Get, Post, Put, Patch, Delete };
 export { ResOk, ResNotFound };
