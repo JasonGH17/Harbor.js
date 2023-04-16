@@ -3,13 +3,18 @@ import IResponse from './response';
 
 let controllers: Map<string, Controller> = new Map();
 
-interface IController {
-	HandleRequest: (req: IncomingMessage, res: ServerResponse) => void;
-	[handler: string]: any;
-}
-
 type UrlSegmentKind = 'string' | 'number' | 'bool';
 type ParsedUrl = Array<[UrlSegmentKind, string | number | boolean]>;
+
+type Request = {
+	body: any;
+	rawReq: IncomingMessage;
+};
+
+interface IController {
+	HandleRequest: (req: Request, res: ServerResponse) => void;
+	[handler: string]: any;
+}
 
 abstract class Controller implements IController {
 	constructor() {}
@@ -77,7 +82,7 @@ abstract class Controller implements IController {
 		return parsed;
 	}
 
-	HandleRequest(req: IncomingMessage, res: ServerResponse) {
+	HandleRequest(req: Request, res: ServerResponse) {
 		const handleRequest = (
 			handler: (params: any) => IResponse,
 			params: any
@@ -91,51 +96,64 @@ abstract class Controller implements IController {
 			res.end();
 		};
 
-		const handlers: Map<string, string> =
-			this.constructor.prototype[req.method ?? 'GET'];
-		const handler = this[handlers.get(req.url as string) as string] as
-			| ((req: IncomingMessage) => IResponse)
-			| undefined;
+		const handle = () => {
+			const handlers: Map<string, string> =
+				this.constructor.prototype[req.rawReq.method ?? 'GET'];
+			const handler = this[
+				handlers.get(req.rawReq.url as string) as string
+			] as ((req: IncomingMessage) => IResponse) | undefined;
 
-		if (!handler) {
-			const parsedUrl = this.ParseUrl(req.url ?? '');
-			let handled: boolean = false;
-			handlers.forEach((handlerName, url) => {
-				if (handled) return;
-				const hndlSegments = this.ParseHandlerUrl(url, handlerName);
-				if (hndlSegments.length === parsedUrl.length) {
-					let params: Record<string, string | number | boolean> = {};
-					for (
-						let i = 0;
-						i < parsedUrl.length && i < hndlSegments.length;
-						i++
-					) {
-						const [hKind, hName] = (hndlSegments as ParsedUrl)[
-							i
-						] as [UrlSegmentKind, string];
-						const [uKind, uValue] = (parsedUrl as ParsedUrl)[i] as [
-							UrlSegmentKind,
-							string | number | boolean
-						];
-						if (hKind === uKind) params[hName] = uValue;
-						else return;
+			if (!handler) {
+				const parsedUrl = this.ParseUrl(req.rawReq.url ?? '');
+				let handled: boolean = false;
+				handlers.forEach((handlerName, url) => {
+					if (handled) return;
+					const hndlSegments = this.ParseHandlerUrl(url, handlerName);
+					if (hndlSegments.length === parsedUrl.length) {
+						let params: Record<string, string | number | boolean> =
+							{};
+						for (
+							let i = 0;
+							i < parsedUrl.length && i < hndlSegments.length;
+							i++
+						) {
+							const [hKind, hName] = (hndlSegments as ParsedUrl)[
+								i
+							] as [UrlSegmentKind, string];
+							const [uKind, uValue] = (parsedUrl as ParsedUrl)[
+								i
+							] as [UrlSegmentKind, string | number | boolean];
+							if (hKind === uKind) params[hName] = uValue;
+							else return;
+						}
+
+						handleRequest(
+							this[handlerName] as (
+								parameters: typeof params
+							) => IResponse,
+							params
+						);
 					}
+				});
+				if (handled) return;
+				res.statusCode = 404;
+				res.end();
+				return;
+			}
 
-					handleRequest(
-						this[handlerName] as (
-							parameters: typeof params
-						) => IResponse,
-						params
-					);
-				}
+			handleRequest(handler, req);
+		};
+
+		if (req.rawReq.method !== 'GET' && req.rawReq.method !== 'HEAD') {
+			let body = '';
+			req.rawReq.on('data', (chunk: string) => {
+				body += chunk;
 			});
-			if (handled) return;
-			res.statusCode = 404;
-			res.end();
-			return;
-		}
-
-		handleRequest(handler, req);
+			req.rawReq.on('end', () => {
+				req.body = JSON.parse(body);
+				handle();
+			});
+		} else handle();
 	}
 }
 

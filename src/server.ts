@@ -29,7 +29,7 @@ class Server {
 			if (req.url?.startsWith(route)) {
 				const routeUrl = req.url.split(route)[1];
 				req.url = routeUrl?.length ? routeUrl : '/';
-				controller.HandleRequest(req, res);
+				controller.HandleRequest({ rawReq: req, body: null}, res);
 			}
 		});
 	}

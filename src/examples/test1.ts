@@ -1,4 +1,3 @@
-import { IncomingMessage } from 'http';
 import { Controller, Route, Get, Post, ResOk } from '../index';
 
 @Route('/test1')
@@ -19,13 +18,14 @@ class test1Controller extends Controller {
 	}
 
 	@Get('/')
-	index(req: IncomingMessage) {
+	index(req: Request) {
 		console.log('HANDLING /\t(index)');
 		return new ResOk('test1 index page');
 	}
 
 	@Post('/')
-	postIndex(req: IncomingMessage) {
+	postIndex(req: Request) {
+		console.log(req.body)
 		return new ResOk('test1 post index result');
 	}
 }
