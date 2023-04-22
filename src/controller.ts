@@ -164,3 +164,4 @@ function Route(route: string) {
 }
 
 export { Controller, Route, controllers };
+export type {Request}

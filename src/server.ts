@@ -30,6 +30,9 @@ class Server {
 				const routeUrl = req.url.split(route)[1];
 				req.url = routeUrl?.length ? routeUrl : '/';
 				controller.HandleRequest({ rawReq: req, body: null}, res);
+			} else {
+				res.statusCode = 404;
+				res.end()
 			}
 		});
 	}

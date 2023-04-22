@@ -7,3 +7,5 @@ export default Server;
 export { Controller, Route };
 export { Get, Post, Put, Patch, Delete };
 export { ResOk, ResNotFound };
+
+export {type Request} from './controller'
