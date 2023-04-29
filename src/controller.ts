@@ -1,5 +1,6 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import IResponse from './response';
+import { GetMethodParams } from './method';
 
 let controllers: Map<string, Controller> = new Map();
 
@@ -9,6 +10,10 @@ type ParsedUrl = Array<[UrlSegmentKind, string | number | boolean]>;
 type Request = {
 	body: any;
 	rawReq: IncomingMessage;
+};
+
+type Param = {
+	[index: string]: any;
 };
 
 interface IController {
@@ -84,10 +89,10 @@ abstract class Controller implements IController {
 
 	HandleRequest(req: Request, res: ServerResponse) {
 		const handleRequest = (
-			handler: (params: any) => IResponse,
-			params: any
+			handler: (...params: any[]) => IResponse,
+			...params: any[]
 		) => {
-			const response: IResponse = handler(params);
+			const response: IResponse = handler(...params);
 			res.statusCode = response.status;
 			response.headers.forEach((value, key) => {
 				res.setHeader(key, value);
@@ -99,8 +104,14 @@ abstract class Controller implements IController {
 		const handle = () => {
 			const handlers: Map<string, string> =
 				this.constructor.prototype[req.rawReq.method ?? 'GET'];
+			const [endpoint, params] = (
+				req.rawReq.url?.slice() as string
+			).split('?');
+
+			const queryData = params?.slice().split(/[&=]/) ?? [];
+
 			const handler = this[
-				handlers.get(req.rawReq.url as string) as string
+				handlers.get(endpoint || ('/' as string)) as string
 			] as ((req: IncomingMessage) => IResponse) | undefined;
 
 			if (!handler) {
@@ -141,7 +152,15 @@ abstract class Controller implements IController {
 				return;
 			}
 
-			handleRequest(handler, req);
+			const handlerParamNames = GetMethodParams(handler);
+			const handlerParams: Array<any> = [];
+			for (let param of handlerParamNames) {
+				if (param === 'req') handlerParams.push(req);
+				const paramId = queryData.findIndex((x) => x === param);
+				if (queryData?.includes(param)) handlerParams.push(queryData[paramId + 1]);
+			}
+			
+			handleRequest(handler, ...handlerParams);
 		};
 
 		if (req.rawReq.method !== 'GET' && req.rawReq.method !== 'HEAD') {
@@ -164,4 +183,4 @@ function Route(route: string) {
 }
 
 export { Controller, Route, controllers };
-export type {Request}
+export type { Request };

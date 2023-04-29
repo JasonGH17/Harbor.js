@@ -1,4 +1,5 @@
 import { Controller, Route, Get, Post, ResOk } from '../index';
+import type { Request } from '../index';
 
 @Route('/test1')
 class test1Controller extends Controller {
@@ -18,14 +19,15 @@ class test1Controller extends Controller {
 	}
 
 	@Get('/')
-	index(req: Request) {
+	index(hi: string, req: Request, test: string) {
+		console.log(test);
 		console.log('HANDLING /\t(index)');
-		return new ResOk('test1 index page');
+		return new ResOk('test1 index page ' + hi);
 	}
 
 	@Post('/')
 	postIndex(req: Request) {
-		console.log(req.body)
+		console.log(req.body);
 		return new ResOk('test1 post index result');
 	}
 }

@@ -15,10 +15,18 @@ function NewMethodDecorator(httpMethod: string) {
 	};
 }
 
+function GetMethodParams(func: Function) {
+	var fnStr = func.toString().replace(/((\/\/.*$)|(\/\*[\s\S]*?\*\/))/gm, '');
+	var result = fnStr
+		.slice(fnStr.indexOf('(') + 1, fnStr.indexOf(')'))
+		.match(/([^\s,]+)/g) as Array<string>;
+	return result ?? [];
+}
+
 const Get = NewMethodDecorator('GET');
 const Post = NewMethodDecorator('POST');
 const Put = NewMethodDecorator('PUT');
 const Patch = NewMethodDecorator('PATCH');
 const Delete = NewMethodDecorator('DELETE');
 
-export { Get, Post, Put, Patch, Delete };
+export { GetMethodParams, Get, Post, Put, Patch, Delete };

@@ -27,7 +27,7 @@ class Server {
 	private RequestHandler(req: IncomingMessage, res: ServerResponse) {
 		controllers.forEach((controller: Controller, route: string) => {
 			if (req.url?.startsWith(route)) {
-				const routeUrl = req.url.split(route)[1];
+				const routeUrl = req.url.slice().split(new RegExp(`${route}(.*)`, 's'))[1];
 				req.url = routeUrl?.length ? routeUrl : '/';
 				controller.HandleRequest({ rawReq: req, body: null}, res);
 			} else {
