@@ -1,6 +1,7 @@
 import { IncomingMessage, ServerResponse } from 'http';
 import IResponse from './response';
 import { GetMethodParams } from './method';
+import query from 'node:querystring';
 
 let controllers: Map<string, Controller> = new Map();
 
@@ -25,7 +26,7 @@ abstract class Controller implements IController {
 	constructor() {}
 	[handler: string]: any;
 
-	ParseUrl(url: string): ParsedUrl {
+	private ParseUrl(url: string): ParsedUrl {
 		let parsed: ParsedUrl = [];
 		const parts = url.split('/');
 		for (let i = 0; i < parts.length; i++) {
@@ -43,7 +44,7 @@ abstract class Controller implements IController {
 		return parsed;
 	}
 
-	ParseHandlerUrl(url: string, handler: string): ParsedUrl {
+	private ParseHandlerUrl(url: string, handler: string): ParsedUrl {
 		const isSegmentType = (kind: string): kind is UrlSegmentKind =>
 			['string', 'number', 'bool'].includes(kind);
 
@@ -108,7 +109,7 @@ abstract class Controller implements IController {
 				req.rawReq.url?.slice() as string
 			).split('?');
 
-			const queryData = params?.slice().split(/[&=]/) ?? [];
+			const queryData = query.parse(params ?? '');
 
 			const handler = this[
 				handlers.get(endpoint || ('/' as string)) as string
@@ -156,10 +157,9 @@ abstract class Controller implements IController {
 			const handlerParams: Array<any> = [];
 			for (let param of handlerParamNames) {
 				if (param === 'req') handlerParams.push(req);
-				const paramId = queryData.findIndex((x) => x === param);
-				if (queryData?.includes(param)) handlerParams.push(queryData[paramId + 1]);
+				if (queryData[param]) handlerParams.push(queryData[param]);
 			}
-			
+
 			handleRequest(handler, ...handlerParams);
 		};
 

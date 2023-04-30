@@ -20,7 +20,7 @@ class test1Controller extends Controller {
 
 	@Get('/')
 	index(hi: string, req: Request, test: string) {
-		console.log(test);
+		console.log(hi);
 		console.log('HANDLING /\t(index)');
 		return new ResOk('test1 index page ' + hi);
 	}
